@@ -57,7 +57,8 @@ The SubjECTive-QA models are also available on Hugging Face <img src="https://hu
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import torch
 
-# Load the model for a particular feature
+# Load the model and tokenizer for a particular feature
+model = AutoModelForSequenceClassification.from_pretrained("gtfintechlab/SubjECTiveQA-{FEATURE}")
 tokenizer = AutoTokenizer.from_pretrained("gtfintechlab/SubjECTiveQA-{FEATURE}")
 
 # Prepare your input text
