@@ -53,40 +53,33 @@ Benchmarking on our dataset reveals that the Pre-trained Language Model (PLM) Ro
 The SubjECTive-QA models are also available on Hugging Face <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="Hugging Face Logo" width="25"/>. You can perform inference with the models using the following code:
 
 ```python
-# Imports
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
-import torch
+from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
 
-# Load the model and tokenizer for a particular feature
-model = AutoModelForSequenceClassification.from_pretrained("gtfintechlab/SubjECTiveQA-{FEATURE}")
-tokenizer = AutoTokenizer.from_pretrained("gtfintechlab/SubjECTiveQA-{FEATURE}")
+# Load the tokenizer, model, and configuration
+tokenizer = AutoTokenizer.from_pretrained("gtfintechlab/SubjECTiveQA-{FEATURE}", do_lower_case=True, do_basic_tokenize=True)
+model = AutoModelForSequenceClassification.from_pretrained("gtfintechlab/SubjECTiveQA-{FEATURE}", num_labels=3)
+config = AutoConfig.from_pretrained("gtfintechlab/SubjECTiveQA-FEATURE")
 
-# Prepare your input text
-text = ""
+# Initialize the text classification pipeline
+classifier = pipeline('text-classification', model=model, tokenizer=tokenizer, config=config, framework="pt")
 
-# Tokenize the input text
-inputs = tokenizer(text, return_tensors="pt")
+# Classify the 'FEATURE' attribute in your question-answer pairs
+qa_pairs = [
+    "Question: What are your company's projections for the next quarter? Answer: We anticipate a 10% increase in revenue due to the launch of our new product line.",
+    "Question: Can you explain the recent decline in stock prices? Answer: Market fluctuations are normal, and we are confident in our long-term strategy."
+]
+results = classifier(qa_pairs, batch_size=128, truncation="only_first")
 
-# Perform the inference
-with torch.no_grad():
-    outputs = model(**inputs)
-
-# Get the logits (raw model outputs)
-logits = outputs.logits
-
-# Apply softmax to get probabilities
-probabilities = torch.nn.functional.softmax(logits, dim=-1)
-
-# Get the predicted class index
-predicted_class_idx = torch.argmax(probabilities, dim=-1).item()
-
-# Map the class index to the actual label
-labels = model.config.id2label
-predicted_label = labels[predicted_class_idx]
-
-print(f"Predicted class index: {predicted_class_idx}")
-print(f"Predicted label: {predicted_label}")
+print(results)
 ```
+#### Label Interpretation
+
+- **LABEL_0:** Negatively Demonstrative of 'FEATURE' (0)  
+
+- **LABEL_1:** Neutral Demonstration of 'FEATURE' (1)  
+
+- **LABEL_2:** Positively Demonstrative of 'FEATURE' (2)  
+
 
 1. Access the fine-tuned model with the best hyperparameters for `CLEAR` on [Hugging Face](https://huggingface.co/gtfintechlab/SubjECTiveQA-CLEAR).
 
@@ -141,13 +134,10 @@ This work has been accepted at the **38th Conference on Neural Information Proce
 
 
 ```bash
-@misc{pardawala2024subjectiveqameasuringsubjectivityearnings,
-      title={SubjECTive-QA: Measuring Subjectivity in Earnings Call Transcripts' QA Through Six-Dimensional Feature Analysis}, 
-      author={Huzaifa Pardawala and Siddhant Sukhani and Agam Shah and Veer Kejriwal and Abhishek Pillai and Rohan Bhasin and Andrew DiBiasio and Tarun Mandapati and Dhruv Adha and Sudheer Chava},
-      year={2024},
-      eprint={2410.20651},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2410.20651}, 
+@article{pardawala2024subjective,
+  title={SubjECTive-QA: Measuring Subjectivity in Earnings Call Transcripts' QA Through Six-Dimensional Feature Analysis},
+  author={Pardawala, Huzaifa and Sukhani, Siddhant and Shah, Agam and Kejriwal, Veer and Pillai, Abhishek and Bhasin, Rohan and DiBiasio, Andrew and Mandapati, Tarun and Adha, Dhruv and Chava, Sudheer},
+  journal={arXiv preprint arXiv:2410.20651},
+  year={2024}
 }
 ```
